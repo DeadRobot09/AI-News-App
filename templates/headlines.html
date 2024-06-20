@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Headlines</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 800px; margin: 20px auto; padding: 20px; background: white; }
+        h1 { color: #333; }
+        ul { list-style-type: none; padding: 0; }
+        li { padding: 10px; margin-bottom: 10px; background: #eee; border-radius: 5px; }
+        li a { text-decoration: none; color: #333; font-size: 18px; }
+        li a:hover { color: #007BFF; }
+        .button { padding: 10px 20px; background: #007BFF; color: white; text-decoration: none; border: none; border-radius: 5px; cursor: pointer; }
+        .button:hover { background: #0056b3; }
+        .button.disabled { background: #ccc; cursor: default; }
+        .fade { animation: fadeIn 2s; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container fade">
+        <h1>News Headlines</h1>
+        <button onclick="refreshNews();" id="refreshButton" class="button">Refresh News</button>
+        <ul id="news-list">
+            {% for news in news_list %}
+            <li id="news_{{ news.id }}">
+                <a href="/article/{{ news.id }}">{{ news.title }} - <small>{{ news.published_at }}</small></a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <script>
+        function refreshNews() {
+            const button = document.getElementById('refreshButton');
+            button.textContent = 'Loading...'; // Change button text to indicate loading
+            button.disabled = true; // Disable button during fetch
+
+            fetch('/rewrite-news', {
+                method: 'GET'  // Assuming GET here; modify if your endpoint requires POST
+            })
+            .then(response => response.json())
+            .then(data => {
+                const newsList = document.getElementById('news-list');
+                newsList.innerHTML = '';  // Clear current news list
+                data.forEach(news => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = `/article/${news.id}`;
+                    a.innerHTML = `${news.title} - <small>${news.published_at}</small>`;
+                    li.appendChild(a);
+                    newsList.appendChild(li);
+                });
+                button.textContent = 'Refresh News'; // Reset button text after loading
+                button.disabled = false; // Enable button after fetch
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.textContent = 'Refresh News'; // Reset button text on error
+                button.disabled = false; // Enable button on error
+            });
+        }
+    </script>
+</body>
+</html>
