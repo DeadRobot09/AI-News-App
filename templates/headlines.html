@@ -4,14 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>News Headlines</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
-        .container { max-width: 800px; margin: 20px auto; padding: 20px; background: white; }
-        h1 { color: #333; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; color: #333; }
+        .navbar { background: #007BFF; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { margin: 0; font-size: 24px; }
+        .navbar button { padding: 10px 20px; background: white; color: #007BFF; border: none; border-radius: 5px; cursor: pointer; }
+        .navbar button:hover { background: #e1e1e1; }
+        .container { display: flex; flex-wrap: wrap; max-width: 1200px; margin: 20px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .left-section { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 20px; }
+        .headline { width: 100%; margin-bottom: 20px; padding-right: 10px; }
+        .headline img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; }
+        .headline a { text-decoration: none; color: #333; font-size: 18px; display: block; margin-top: 10px; font-weight: bold; }
+        .headline a:hover { color: #007BFF; }
+        .right-section { width: 100%; margin-top: 20px; padding-left: 10px; }
+        @media (min-width: 768px) {
+            .left-section { width: 73%; margin-bottom: 0; }
+            .right-section { width: 25%; margin-top: 0; padding-left: 20px; }
+            .headline img { height: 250px; } /* Increase image height for larger screens */
+        }
+        @media (min-width: 1024px) {
+            .headline img { height: 300px; } /* Further increase image height for larger screens */
+        }
+        .right-section h2 { font-size: 20px; margin-bottom: 20px; }
         ul { list-style-type: none; padding: 0; }
-        li { padding: 10px; margin-bottom: 10px; background: #eee; border-radius: 5px; }
-        li a { text-decoration: none; color: #333; font-size: 18px; }
+        li { padding: 10px; margin-bottom: 10px; background: #eee; border-radius: 5px; display: flex; align-items: center; }
+        li a { text-decoration: none; color: #333; font-size: 18px; flex-grow: 1; font-weight: bold; }
         li a:hover { color: #007BFF; }
+        li i { margin-right: 10px; color: #007BFF; }
         .button { padding: 10px 20px; background: #007BFF; color: white; text-decoration: none; border: none; border-radius: 5px; cursor: pointer; }
         .button:hover { background: #0056b3; }
         .button.disabled { background: #ccc; cursor: default; }
@@ -20,24 +40,49 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+        .footer { background: #007BFF; color: white; padding: 20px; text-align: center; margin-top: 20px; }
+        .footer a { color: white; text-decoration: none; margin: 0 10px; }
+        .footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
+    <div class="navbar">
+        <h1><i class="fas fa-newspaper"></i> News Portal</h1>
+        <button onclick="refreshNews();" id="refreshButton" class="button"><i class="fas fa-sync-alt"></i> Refresh News</button>
+    </div>
     <div class="container fade">
-        <h1>News Headlines</h1>
-        <button onclick="refreshNews();" id="refreshButton" class="button">Refresh News</button>
-        <ul id="news-list">
-            {% for news in news_list %}
-            <li id="news_{{ news.id }}">
-                <a href="/article/{{ news.id }}">{{ news.title }} - <small>{{ news.published_at }}</small></a>
-            </li>
+        <div class="left-section" id="main-headlines">
+            {% for news in news_list[:5] %}
+            <div class="headline">
+                <img src="{{ news.image_url or 'https://via.placeholder.com/150' }}" alt="News Image">
+                <a href="/article/{{ news.id }}">{{ news.title }}</a>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
+        <div class="right-section">
+            <h2>Headlines</h2>
+            <ul id="news-list">
+                {% for news in news_list %}
+                <li id="news_{{ news.id }}">
+                    <i class="fas fa-chevron-right"></i>
+                    <a href="/article/{{ news.id }}">{{ news.title }} - <small>{{ news.published_at }}</small></a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="footer">
+        <p>&copy; 2023 News Portal. All rights reserved.</p>
+        <p>
+            <a href="/">Home</a> |
+            <a href="/about">About</a> |
+            <a href="/contact">Contact</a>
+        </p>
     </div>
     <script>
         function refreshNews() {
             const button = document.getElementById('refreshButton');
-            button.textContent = 'Loading...'; // Change button text to indicate loading
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...'; // Change button text to indicate loading
             button.disabled = true; // Disable button during fetch
 
             fetch('/rewrite-news', {
@@ -45,22 +90,42 @@
             })
             .then(response => response.json())
             .then(data => {
+                const mainHeadlines = document.getElementById('main-headlines');
                 const newsList = document.getElementById('news-list');
-                newsList.innerHTML = '';  // Clear current news list
+                
+                // Update main headlines
+                mainHeadlines.innerHTML = '';
+                data.slice(0, 5).forEach(news => {
+                    const headlineDiv = document.createElement('div');
+                    headlineDiv.className = 'headline';
+                    headlineDiv.innerHTML = `
+                        <img src="${news.image_url || 'https://via.placeholder.com/150'}" alt="News Image">
+                        <a href="/article/${news.id}">${news.title}</a>
+                    `;
+                    mainHeadlines.appendChild(headlineDiv);
+                });
+
+                // Clear and update news list
+                newsList.innerHTML = '';  
                 data.forEach(news => {
                     const li = document.createElement('li');
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-chevron-right';
                     const a = document.createElement('a');
                     a.href = `/article/${news.id}`;
                     a.innerHTML = `${news.title} - <small>${news.published_at}</small>`;
+                    li.appendChild(icon);
                     li.appendChild(a);
+                    li.className = 'fade';
                     newsList.appendChild(li);
                 });
-                button.textContent = 'Refresh News'; // Reset button text after loading
+
+                button.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh News'; // Reset button text after loading
                 button.disabled = false; // Enable button after fetch
             })
             .catch(error => {
                 console.error('Error:', error);
-                button.textContent = 'Refresh News'; // Reset button text on error
+                button.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh News'; // Reset button text on error
                 button.disabled = false; // Enable button on error
             });
         }
