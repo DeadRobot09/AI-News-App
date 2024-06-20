@@ -56,25 +56,26 @@ def rewrite_news():
         News.query.delete()  # Clear existing news entries to avoid duplicates
         db.session.commit()
         for article in news_data:
-            if article['content']:  
+            if article['content']:  # Only process articles with content
                 new_content = generate_new_article(article['content'])
-                article['content'] = new_content 
-            new_article = News(
-                source=article['source']['name'],
-                author=article['author'],
-                title=article['title'],
-                description=article['description'],
-                url=article['url'],
-                image_url=article['urlToImage'],
-                published_at=article['publishedAt'],
-                content=article['content']
-            )
-            db.session.add(new_article)
+                article['content'] = new_content
+                new_article = News(
+                    source=article['source']['name'],
+                    author=article['author'],
+                    title=article['title'],
+                    description=article['description'],
+                    url=article['url'],
+                    image_url=article['urlToImage'],
+                    published_at=article['publishedAt'],
+                    content=article['content']
+                )
+                db.session.add(new_article)
         db.session.commit()
-        news_list = [{'id': news.id, 'title': news.title, 'published_at': news.published_at} for news in News.query.all()]
+        news_list = [{'id': news.id, 'title': news.title, 'published_at': news.published_at, 'image_url':news.image_url } for news in News.query.all()]
         return jsonify(news_list)
     else:
         return jsonify({"error": "Failed to fetch news"}), 500
+
 
 
 
@@ -87,8 +88,9 @@ def headlines():
 @app.route('/article/<int:news_id>')
 def article(news_id):
     article = News.query.get(news_id)
+    news_list = News.query.all()
     if article:
-        return render_template('article.html', article=article)
+        return render_template('article.html', article=article, news_list=news_list)
     else:
         return 'Article not found', 404
     
