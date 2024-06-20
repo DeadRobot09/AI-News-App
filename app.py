@@ -32,10 +32,22 @@ class News(db.Model):
 with app.app_context():
     db.create_all()
 
-def fetch_news():
-    url = "https://newsapi.org/v2/top-headlines?country=in&apiKey=cee10f8e446142a29fb2ca5ae690cfcc"
-    response = requests.get(url)
-    return response.json()['articles'] if response.status_code == 200 else None
+def fetch_all_news():
+    url = 'https://newsapi.org/v2/everything'
+    params = {
+        'q': 'indian technology',  
+        'language': 'en', 
+        'sortBy': 'publishedAt',  
+        'pageSize': 20,  
+        'page': 1,  
+        'apiKey': 'cee10f8e446142a29fb2ca5ae690cfcc'
+    }
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        return response.json().get('articles', [])
+    else:
+        print(f'Error fetching news: {response.status_code}')
+        return []
 
 def generate_new_article(original_content):
     if not original_content:
@@ -51,7 +63,7 @@ def generate_new_article(original_content):
 
 @app.route('/rewrite-news', methods=['GET'])
 def rewrite_news():
-    news_data = fetch_news()
+    news_data = fetch_all_news()
     if news_data:
         News.query.delete()  # Clear existing news entries to avoid duplicates
         db.session.commit()
@@ -69,6 +81,7 @@ def rewrite_news():
                     published_at=article['publishedAt'],
                     content=article['content']
                 )
+                print(new_article)
                 db.session.add(new_article)
         db.session.commit()
         news_list = [{'id': news.id, 'title': news.title, 'published_at': news.published_at, 'image_url':news.image_url } for news in News.query.all()]
