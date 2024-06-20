@@ -7,6 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Roboto', sans-serif; background: #fafafa; margin: 0; padding: 0; color: #333; line-height: 1.6; }
+        .navbar { background: #007BFF; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { margin: 0; font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; }
+        .navbar a:hover { text-decoration: underline; }
         .container { max-width: 960px; margin: 40px auto; padding: 20px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         h1 { font-family: 'Noto Serif', serif; color: #2C3E50; margin-top: 0; }
         img { max-width: 100%; height: auto; border-radius: 8px; margin-top: 20px; }
@@ -21,9 +25,28 @@
         }
         .back-link { display: inline-block; margin-top: 20px; color: #95a5a6; font-size: 16px; }
         .back-link:hover { color: #2c3e50; }
+        .recommended-news { margin-top: 40px; }
+        .recommended-news h2 { font-family: 'Noto Serif', serif; color: #2C3E50; }
+        .news-container { display: flex; overflow-x: auto; padding-bottom: 20px; }
+        .news-item { flex: 0 0 auto; width: 200px; margin-right: 20px; }
+        .news-item img { width: 200px; height: 200px; object-fit: cover; border-radius: 8px; }
+        .news-item a { display: block; text-align: center; margin-top: 10px; font-size: 16px; color: #333; font-weight: bold; }
+        .news-item a:hover { color: #007BFF; }
+        .footer { background: #007BFF; color: white; padding: 20px; text-align: center; margin-top: 40px; }
+        .footer a { color: white; text-decoration: none; margin: 0 10px; }
+        .footer a:hover { text-decoration: underline; }
+        @media (max-width: 768px) {
+            .news-item { width: 150px; }
+            .news-item img { width: 150px; height: 150px; }
+            .news-item a { font-size: 14px; }
+        }
     </style>
 </head>
 <body>
+    <div class="navbar">
+        <h1><i class="fas fa-newspaper"></i> News Portal</h1>
+        <a href="/">Home</a>
+    </div>
     <div class="container fade">
         <h1>{{ article.title }}</h1>
         {% if article.image_url %}
@@ -33,6 +56,28 @@
         <p class="meta"><strong>Author:</strong> {{ article.author }}</p>
         <p>{{ article.content }}</p>
         <a href="/" class="back-link">&larr; Back to headlines</a>
+        
+        <div class="recommended-news">
+            <h2>Recommended News</h2>
+            <div class="news-container">
+                {% for news in news_list[:10] %}
+                {% if news.id != article.id %}
+                <div class="news-item">
+                    <img src="{{ news.image_url or 'https://via.placeholder.com/200' }}" alt="News Image">
+                    <a href="/article/{{ news.id }}">{{ news.title }}</a>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <p>&copy; 2023 News Portal. All rights reserved.</p>
+        <p>
+            <a href="/">Home</a> |
+            <a href="/about">About</a> |
+            <a href="/contact">Contact</a>
+        </p>
     </div>
 </body>
 </html>
